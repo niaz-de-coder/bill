@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BillEase · simple invoice generator</title>
+  <!-- clean font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet">
+  <!-- Font Awesome for a subtle print icon (free) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #f4f7fb;
+      font-family: 'Inter', sans-serif;
+      color: #1e293b;
+      line-height: 1.5;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-weight: 600;
+      font-size: 2.2rem;
+      letter-spacing: -0.02em;
+      color: #0f172a;
+      margin-bottom: 1.8rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    h1 i {
+      color: #2d7a4b;
+      font-size: 2rem;
+    }
+
+    /* card style */
+    .form-card, .bill-preview {
+      background: #ffffff;
+      border-radius: 28px;
+      box-shadow: 0 15px 35px -10px rgba(0,20,30,0.15);
+      padding: 2rem 2rem 2.2rem;
+      margin-bottom: 2.2rem;
+      transition: all 0.2s;
+      border: 1px solid #e9edf4;
+    }
+
+    h2, h3 {
+      font-weight: 600;
+      color: #1e293b;
+      margin-bottom: 1.2rem;
+    }
+    h2 {
+      font-size: 1.7rem;
+      letter-spacing: -0.01em;
+      border-left: 6px solid #2d7a4b;
+      padding-left: 1.2rem;
+    }
+    h3 {
+      font-size: 1.3rem;
+      margin-top: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    /* form grid */
+    .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .form-group {
+      flex: 1 1 200px;
+      min-width: 0;
+    }
+    label {
+      font-weight: 500;
+      font-size: 0.9rem;
+      color: #475569;
+      display: block;
+      margin-bottom: 0.3rem;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 18px;
+      font-size: 1rem;
+      font-family: 'Inter', sans-serif;
+      background: #fafcff;
+      transition: 0.15s;
+    }
+    input:focus {
+      outline: none;
+      border-color: #2d7a4b;
+      background: #ffffff;
+      box-shadow: 0 0 0 4px rgba(45,122,75,0.15);
+    }
+    input[type="number"] {
+      -moz-appearance: textfield;
+    }
+    input[type="number"]::-webkit-inner-spin-button {
+      opacity: 0.5;
+    }
+
+    /* items table */
+    .items-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0 0.8rem;
+    }
+    .items-table th {
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: #64748b;
+      padding-bottom: 0.8rem;
+      border-bottom: 2px solid #e2e8f0;
+    }
+    .items-table td {
+      padding: 0.5rem 0.2rem 0.5rem 0;
+      vertical-align: middle;
+      border-bottom: 1px solid #edf2f7;
+    }
+    .items-table td input {
+      padding: 0.6rem 0.8rem;
+      border-radius: 14px;
+      background: white;
+    }
+    .row-amount {
+      font-weight: 500;
+      color: #0f172a;
+      background: #f1f5f9;
+      display: inline-block;
+      padding: 0.6rem 1rem;
+      border-radius: 14px;
+      width: 100%;
+      text-align: right;
+    }
+    .remove-btn {
+      background: none;
+      border: none;
+      font-size: 1.3rem;
+      color: #94a3b8;
+      cursor: pointer;
+      padding: 0.4rem 0.8rem;
+      border-radius: 40px;
+      transition: all 0.1s;
+    }
+    .remove-btn:hover {
+      color: #b91c1c;
+      background: #fee2e2;
+    }
+
+    .btn {
+      border: none;
+      font-weight: 600;
+      padding: 0.8rem 2rem;
+      border-radius: 40px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: 0.15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.03);
+    }
+    .btn-primary {
+      background: #1e3a5f;
+      color: white;
+      border: 1px solid #1a2f4e;
+    }
+    .btn-primary:hover {
+      background: #11223b;
+      transform: translateY(-2px);
+      box-shadow: 0 12px 20px -10px #0b1a2e;
+    }
+    .btn-secondary {
+      background: white;
+      color: #1e293b;
+      border: 2px solid #cbd5e1;
+    }
+    .btn-secondary:hover {
+      background: #f8fafc;
+      border-color: #2d7a4b;
+    }
+    #addRowBtn {
+      margin: 0.5rem 0 1.5rem;
+      background: #f0f9f1;
+      border: 2px dashed #9bb8a7;
+      color: #1f4f3a;
+    }
+
+    .totals {
+      background: #f1f6fc;
+      padding: 1.3rem 2rem;
+      border-radius: 24px;
+      margin: 1.8rem 0 1.8rem;
+      font-weight: 500;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 2.5rem;
+      font-size: 1.2rem;
+    }
+    .totals div span {
+      font-weight: 700;
+      color: #0f3b2c;
+      margin-left: 0.4rem;
+    }
+
+    /* bill preview (invoice) styling */
+    .bill-preview {
+      background: #ffffff;
+      display: none;  /* hidden until generate */
+    }
+    .invoice {
+      padding: 0.8rem 0.2rem;
+    }
+    .invoice-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 3px double #cbd5e1;
+      padding-bottom: 1.2rem;
+      margin-bottom: 1.8rem;
+    }
+    .company {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #1e3a5f;
+    }
+    .invoice-title {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #2d7a4b;
+      background: #e6f7ec;
+      padding: 0.3rem 2rem;
+      border-radius: 100px;
+    }
+    .invoice-details {
+      background: #f8fafc;
+      padding: 1.2rem 1.8rem;
+      border-radius: 20px;
+      margin-bottom: 2rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2.5rem;
+      font-size: 1.1rem;
+    }
+    .invoice-details div strong {
+      color: #0b3b2a;
+    }
+    .invoice-items {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+    }
+    .invoice-items th {
+      background: #e2e8f0;
+      padding: 0.9rem 1rem;
+      text-align: left;
+      font-weight: 600;
+    }
+    .invoice-items td {
+      padding: 0.8rem 1rem;
+      border-bottom: 1px solid #d1d9e6;
+    }
+    .invoice-items tbody tr:last-child td {
+      border-bottom: none;
+    }
+    .invoice-totals {
+      margin-top: 2rem;
+      border-top: 2px solid #cbd5e1;
+      padding-top: 1.2rem;
+      text-align: right;
+      font-size: 1.2rem;
+      line-height: 2;
+    }
+    .invoice-totals div span {
+      font-weight: 700;
+      color: #1e3a5f;
+      min-width: 120px;
+      display: inline-block;
+    }
+    .invoice-footer {
+      margin-top: 2.5rem;
+      text-align: center;
+      color: #475569;
+      font-style: italic;
+    }
+
+    /* download button */
+    #downloadPdfBtn {
+      background: #2d7a4b;
+      color: white;
+      border: none;
+      font-size: 1.2rem;
+      padding: 1rem 2.8rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 12px 18px -10px #1d5a38;
+    }
+    #downloadPdfBtn i {
+      font-size: 1.3rem;
+    }
+
+    /* 🖨️ PRINT STYLES — only invoice visible */
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      .bill-preview, .bill-preview * {
+        visibility: visible;
+      }
+      .bill-preview {
+        display: block !important;
+        position: absolute;
+        left: 0.5in;
+        top: 0.3in;
+        width: 90%;
+        background: white;
+        box-shadow: none;
+        border: none;
+        padding: 0.2in;
+      }
+      .invoice-header, .invoice-details, .invoice-items, .invoice-totals {
+        background: white !important;
+        color: black !important;
+      }
+      .btn, #downloadPdfBtn, .form-card, h1, .totals, #addRowBtn {
+        display: none !important;
+      }
+    }
+
+    /* responsive */
+    @media (max-width: 700px) {
+      .form-row {
+        flex-direction: column;
+        gap: 0.8rem;
+      }
+      .items-table th, .items-table td {
+        font-size: 0.85rem;
+      }
+      .totals {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: flex-end;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>
+      <i class="fas fa-receipt"></i> BillEase · simple billing
+    </h1>
+
+    <!-- FORM CARD -->
+    <div class="form-card">
+      <h2>📋 create invoice</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="billNumber">bill number</label>
+          <input type="text" id="billNumber" placeholder="auto (INV-****)" value="INV-2403">
+        </div>
+        <div class="form-group">
+          <label for="billDate">date</label>
+          <input type="date" id="billDate">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="customerName">customer name <span style="color:#b91c1c;">*</span></label>
+        <input type="text" id="customerName" placeholder="e.g. Acme Inc.">
+      </div>
+
+      <h3>🛒 items</h3>
+      <table class="items-table">
+        <thead>
+          <tr><th>description</th><th>qty</th><th>rate ($)</th><th>amount</th><th></th></tr>
+        </thead>
+        <tbody id="items-body">
+          <!-- rows injected by js -->
+        </tbody>
+      </table>
+      <button type="button" id="addRowBtn" class="btn btn-secondary"><i class="fas fa-plus-circle"></i> add new line</button>
+
+      <div class="form-row" style="margin-top:0.2rem;">
+        <div class="form-group" style="max-width:220px;">
+          <label for="taxRate">tax rate (%)</label>
+          <input type="number" id="taxRate" value="8.5" min="0" step="0.1">
+        </div>
+      </div>
+
+      <!-- dynamic totals preview -->
+      <div class="totals">
+        <div>subtotal: $<span id="subtotal">0.00</span></div>
+        <div>tax: $<span id="tax">0.00</span></div>
+        <div>total: $<span id="total">0.00</span></div>
+      </div>
+
+      <button type="button" id="generateBillBtn" class="btn btn-primary"><i class="fas fa-file-invoice"></i> Generate bill</button>
+    </div>
+
+    <!-- BILL PREVIEW (hidden until generated) -->
+    <div class="bill-preview" id="billPreview"></div>
+
+    <!-- DOWNLOAD PDF BUTTON (hidden initially) -->
+    <button type="button" id="downloadPdfBtn" class="btn" style="display: none;"><i class="fas fa-download"></i> Download as PDF</button>
+  </div>
+
+  <script>
+    (function() {
+      // ----- DOM elements -----
+      const itemsBody = document.getElementById('items-body');
+      const addRowBtn = document.getElementById('addRowBtn');
+      const generateBtn = document.getElementById('generateBillBtn');
+      const downloadBtn = document.getElementById('downloadPdfBtn');
+      const billPreviewDiv = document.getElementById('billPreview');
+      
+      const billNumberInput = document.getElementById('billNumber');
+      const billDateInput = document.getElementById('billDate');
+      const customerNameInput = document.getElementById('customerName');
+      const taxRateInput = document.getElementById('taxRate');
+
+      const subtotalSpan = document.getElementById('subtotal');
+      const taxSpan = document.getElementById('tax');
+      const totalSpan = document.getElementById('total');
+
+      // ----- helper: format money (2 decimals) -----
+      const formatMoney = (val) => parseFloat(val).toFixed(2);
+
+      // ----- update row amount based on qty * rate -----
+      function updateRowAmount(row) {
+        const qtyInput = row.querySelector('.item-qty');
+        const rateInput = row.querySelector('.item-rate');
+        const amountSpan = row.querySelector('.row-amount');
+        if (!qtyInput || !rateInput || !amountSpan) return;
+        const qty = parseFloat(qtyInput.value) || 0;
+        const rate = parseFloat(rateInput.value) || 0;
+        const amount = qty * rate;
+        amountSpan.textContent = formatMoney(amount);
+      }
+
+      // ----- recalc all totals (subtotal, tax, total) from DOM rows -----
+      function updateTotals() {
+        const rows = itemsBody.querySelectorAll('tr');
+        let subtotal = 0;
+        rows.forEach(row => {
+          const amountSpan = row.querySelector('.row-amount');
+          if (amountSpan) {
+            subtotal += parseFloat(amountSpan.textContent) || 0;
+          }
+        });
+        const taxRate = parseFloat(taxRateInput.value) || 0;
+        const tax = subtotal * (taxRate / 100);
+        const total = subtotal + tax;
+
+        subtotalSpan.textContent = formatMoney(subtotal);
+        taxSpan.textContent = formatMoney(tax);
+        totalSpan.textContent = formatMoney(total);
+      }
+
+      // ----- create new row (with optional default values) -----
+      function addRow(desc = '', qty = 1, rate = 0) {
+        const tr = document.createElement('tr');
+
+        // description cell
+        const tdDesc = document.createElement('td');
+        const descInput = document.createElement('input');
+        descInput.type = 'text';
+        descInput.className = 'item-desc';
+        descInput.placeholder = 'item name';
+        descInput.value = desc;
+        tdDesc.appendChild(descInput);
+
+        // quantity cell
+        const tdQty = document.createElement('td');
+        const qtyInput = document.createElement('input');
+        qtyInput.type = 'number';
+        qtyInput.className = 'item-qty';
+        qtyInput.value = qty;
+        qtyInput.min = '0';
+        qtyInput.step = 'any';
+        tdQty.appendChild(qtyInput);
+
+        // rate cell
+        const tdRate = document.createElement('td');
+        const rateInput = document.createElement('input');
+        rateInput.type = 'number';
+        rateInput.className = 'item-rate';
+        rateInput.value = rate;
+        rateInput.min = '0';
+        rateInput.step = 'any';
+        tdRate.appendChild(rateInput);
+
+        // amount cell (readonly display)
+        const tdAmount = document.createElement('td');
+        const amountSpan = document.createElement('span');
+        amountSpan.className = 'row-amount';
+        amountSpan.textContent = '0.00';
+        tdAmount.appendChild(amountSpan);
+
+        // remove button cell
+        const tdRemove = document.createElement('td');
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'remove-btn';
+        removeBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+        removeBtn.setAttribute('aria-label', 'remove item');
+        tdRemove.appendChild(removeBtn);
+
+        tr.appendChild(tdDesc);
+        tr.appendChild(tdQty);
+        tr.appendChild(tdRate);
+        tr.appendChild(tdAmount);
+        tr.appendChild(tdRemove);
+
+        itemsBody.appendChild(tr);
+
+        // initial amount calculation
+        updateRowAmount(tr);
+        updateTotals();
+      }
+
+      // ----- remove row from table (delegation) -----
+      function handleRemoveClick(e) {
+        const btn = e.target.closest('.remove-btn');
+        if (!btn) return;
+        const row = btn.closest('tr');
+        if (row && itemsBody.children.length > 0) {
+          row.remove();
+          updateTotals();
+        }
+      }
+
+      // ----- input events for qty/rate changes (delegation) -----
+      function handleInputChange(e) {
+        const target = e.target;
+        if (target.classList.contains('item-qty') || target.classList.contains('item-rate')) {
+          const row = target.closest('tr');
+          if (row) {
+            updateRowAmount(row);
+            updateTotals();
+          }
+        }
+      }
+
+      // ----- attach event listeners (delegation) -----
+      itemsBody.addEventListener('click', handleRemoveClick);
+      itemsBody.addEventListener('input', handleInputChange);
+      taxRateInput.addEventListener('input', updateTotals);
+
+      // ----- add row button -----
+      addRowBtn.addEventListener('click', () => addRow('', 1, 0));
+
+      // ----- set today's date as default -----
+      const today = new Date().toISOString().slice(0, 10);
+      billDateInput.value = today;
+
+      // ----- initial row -----
+      addRow('Web design', 2, 75);
+      addRow('Hosting', 1, 120);
+
+      // ----- generate bill preview -----
+      generateBtn.addEventListener('click', () => {
+        // validate customer name
+        const customer = customerNameInput.value.trim();
+        if (!customer) {
+          alert('Please enter customer name');
+          return;
+        }
+        // check at least one item row with description
+        const rows = itemsBody.querySelectorAll('tr');
+        if (rows.length === 0) {
+          alert('Add at least one item');
+          return;
+        }
+        let hasValidItem = false;
+        rows.forEach(row => {
+          const desc = row.querySelector('.item-desc')?.value.trim();
+          if (desc) hasValidItem = true;
+        });
+        if (!hasValidItem) {
+          alert('Please enter at least one item description');
+          return;
+        }
+
+        // gather invoice data
+        const billNumber = billNumberInput.value.trim() || `INV-${Math.floor(Math.random()*9000+1000)}`;
+        const billDate = billDateInput.value || today;
+        const taxRate = parseFloat(taxRateInput.value) || 0;
+
+        // collect items
+        const items = [];
+        rows.forEach(row => {
+          const desc = row.querySelector('.item-desc')?.value.trim() || 'item';
+          const qty = parseFloat(row.querySelector('.item-qty')?.value) || 0;
+          const rate = parseFloat(row.querySelector('.item-rate')?.value) || 0;
+          const amount = (qty * rate);
+          if (desc) {  // include only if description exists
+            items.push({ desc, qty, rate, amount: formatMoney(amount) });
+          }
+        });
+
+        // use current totals
+        const subtotal = parseFloat(subtotalSpan.textContent) || 0;
+        const tax = parseFloat(taxSpan.textContent) || 0;
+        const total = parseFloat(totalSpan.textContent) || 0;
+
+        // build invoice HTML
+        let itemsRows = '';
+        items.forEach(item => {
+          itemsRows += `<tr><td>${item.desc}</td><td>${item.qty}</td><td>$${item.rate}</td><td>$${item.amount}</td></tr>`;
+        });
+
+        const invoiceHTML = `
+          <div class="invoice">
+            <div class="invoice-header">
+              <div class="company">BillEase</div>
+              <div class="invoice-title">INVOICE</div>
+            </div>
+            <div class="invoice-details">
+              <div><strong>Bill to:</strong> ${customer}</div>
+              <div><strong>Invoice #:</strong> ${billNumber}</div>
+              <div><strong>Date:</strong> ${billDate}</div>
+            </div>
+            <table class="invoice-items">
+              <thead><tr><th>Description</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead>
+              <tbody>${itemsRows}</tbody>
+            </table>
+            <div class="invoice-totals">
+              <div>Subtotal: <span>$${formatMoney(subtotal)}</span></div>
+              <div>Tax (${taxRate}%): <span>$${formatMoney(tax)}</span></div>
+              <div style="font-size:1.5rem; font-weight:600;">Total: <span>$${formatMoney(total)}</span></div>
+            </div>
+            <div class="invoice-footer">Thank you — we appreciate your business</div>
+          </div>
+        `;
+
+        // show preview and download button
+        billPreviewDiv.innerHTML = invoiceHTML;
+        billPreviewDiv.style.display = 'block';
+        downloadBtn.style.display = 'inline-flex';
+
+        // optional smooth scroll to bill
+        billPreviewDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+
+      // ----- download as PDF (using browser print -> save as PDF) -----
+      downloadBtn.addEventListener('click', () => {
+        // ensure bill preview is visible (it is)
+        window.print();
+      });
+
+      // extra: if someone changes form after generation, we don't auto-update preview (that's fine)
+    })();
+  </script>
+</body>
+</html>
